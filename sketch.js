@@ -1,7 +1,7 @@
 // 全域變數定義
 let finalScore = 0; 
 let maxScore = 0;
-let scoreText = "等待 H5P 成績中..."; 
+let scoreText = ""; 
 let scoreCanvas; 
 
 // 煙火相關全域變數
