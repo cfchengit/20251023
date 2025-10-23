@@ -234,16 +234,16 @@ function draw() {
     }
     
     // D. 繪製幾何圖形 (與舊版本邏輯相同)
-    if (percentage >= 90) {
-        fill(0, 200, 50, 150); 
-        noStroke();
-        circle(width / 2, shapeYOffset, 150);
+    // if (percentage >= 90) {
+    //     fill(0, 200, 50, 150); 
+    //     noStroke();
+    //     circle(width / 2, shapeYOffset, 150);
         
-    } else if (percentage >= 60) {
-        fill(255, 181, 35, 150);
-        rectMode(CENTER);
-        rect(width / 2, shapeYOffset, 150, 150);
-    }
+    // } else if (percentage >= 60) {
+    //     fill(255, 181, 35, 150);
+    //     rectMode(CENTER);
+    //     rect(width / 2, shapeYOffset, 150, 150);
+    // }
 
     // 判斷是否停止 loop
     if (percentage < 90 && fireworks.length === 0) {
