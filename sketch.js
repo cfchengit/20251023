@@ -12,6 +12,7 @@ const FIREWORK_COUNTDOWN = 60;
 
 // =================================================================
 // 類別定義 (Particle & Firework)
+// (與上一個版本相同，已移除音效)
 // =================================================================
 
 // 粒子類別 (用於火箭和爆炸碎片)
@@ -69,8 +70,7 @@ class Particle {
 class Firework {
     constructor(startX, startY) {
         this.hu = random(255); 
-        // 從畫布底部發射
-        this.firework = new Particle(startX, height, this.hu, true); 
+        this.firework = new Particle(startX, startY, this.hu, true); 
         this.exploded = false;
         this.particles = [];
         this.timer = FIREWORK_COUNTDOWN;
@@ -82,8 +82,7 @@ class Firework {
             this.firework.update();
             
             this.timer--;
-            // 判斷是否應該爆炸
-            if (this.timer <= 0 || this.firework.vel.y >= 0) { // 檢查是否到達頂點或計時結束
+            if (this.timer <= 0) {
                 this.explode();
                 this.exploded = true;
             }
@@ -153,25 +152,18 @@ function setup() {
 
     scoreCanvas.hide(); 
     
-    // 預設停止，等待 postMessage 喚醒
+    loop(); 
     noLoop(); 
 } 
 
 function draw() { 
-    // **關鍵修正：只清除畫布頂部，讓煙火殘影可以疊加**
-    if (finalScore !== 0) {
-        // 如果已經開始顯示成績，使用透明黑色背景來模擬殘影效果
-        background(0, 0, 0, 25); 
-    } else {
-        // 如果在等待狀態，完全清除背景以避免殘留
-        clear();
-    }
-    
+    clear(); // 每次繪製，先清除畫布
+
     colorMode(RGB); 
     
-    if (finalScore === 0) {
+    if (finalScore === 0 && maxScore === 0) {
         // **狀態：等待成績 (初始狀態)**
-        scoreText ="再試一次"
+        
         // 繪製等待文字
         drawTextBox(scoreText, width / 2, height / 2, 400, 80);
         
@@ -179,32 +171,33 @@ function draw() {
     }
     
     // **狀態：顯示成績**
-    
+    // 只有在顯示成績時才使用透明背景來製造煙火殘影
+    background(0, 0, 0, 25); 
+
     let percentage = (finalScore / maxScore) * 100;
-    let textYOffset = height / 2 - 100; 
+    let textYOffset = height / 2 - 100; // 調整位置以騰出空間給分數框
     let shapeYOffset = height / 2 + 150;
 
     // A. 繪製祝賀/提示文字 (第一行文字，居中)
     let mainText = "";
-    let mainTextColor = color(0); 
+    let mainTextColor = color(0); // 預設黑色
 
     if (percentage >= 90) {
         mainText = "恭喜！優異成績！";
-        mainTextColor = color(0, 200, 50); 
+        mainTextColor = color(0, 200, 50); // 綠色
         
         // 觸發煙火發射 (如果分數夠高)
-        // **調整：提高發射頻率，讓煙火更頻繁出現**
-        if (frameCount % 5 === 0 && random(1) < 0.3) { 
+        if (frameCount % 10 === 0 && random(1) < 0.2) { 
             fireworks.push(new Firework(random(width), height));
         }
         
     } else if (percentage >= 60) {
         mainText = "成績良好，請再接再厲。";
-        mainTextColor = color(255, 181, 35); 
+        mainTextColor = color(255, 181, 35); // 黃色
         
     } else {
         mainText = "需要加強努力！";
-        mainTextColor = color(200, 0, 0); 
+        mainTextColor = color(200, 0, 0); // 紅色
     }
     
     // 繪製第一行文字的背景框
@@ -222,7 +215,6 @@ function draw() {
     
     // -----------------------------------------------------------------
     // C. 煙火動畫更新與繪製
-    // **這部分邏輯必須在 draw() 執行時被觸發**
     // -----------------------------------------------------------------
     for (let i = fireworks.length - 1; i >= 0; i--) {
         fireworks[i].update();
@@ -246,15 +238,11 @@ function draw() {
     }
 
     // 判斷是否停止 loop
-    if (percentage < 90 && fireworks.length === 0) {
-        // 靜態分數顯示完成，停止動畫
-        noLoop(); 
-    } else if (percentage >= 90 && fireworks.length === 0) {
-        // 如果高分，但煙火放完了，可以繼續發射新的煙火直到 loop() 停止
-        // 我們讓它持續 loop，直到分數改變或頁面刷新
-        if (frameCount > 60 * 10) { // 假設10秒後停止
-            noLoop();
-        }
+    if (fireworks.length === 0 && percentage < 90) {
+        noLoop(); // 靜態分數顯示完成，停止動畫
+    } else if (fireworks.length === 0 && percentage >= 90) {
+        // 煙火放完後，停止動畫，保持靜態畫面
+        noLoop();
     }
 }
 
@@ -274,7 +262,7 @@ window.addEventListener('message', function (event) {
         
         // 2. 關鍵步驟：顯示 p5.js 畫布
         if (scoreCanvas) {
-            scoreCanvas.show(); 
+            scoreCanvas.show(); // 讓 Canvas 顯示出來
         }
         
         // 3. 呼叫 p5.js 重新繪製
